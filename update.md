@@ -4,7 +4,7 @@
 增加没有延时的任务
 
 增加方法`delayTaskIter(time, timeUnit, Iterator<Runnable>)`
-增加方法`delayTask(time, timeUnit, Runnable[])`
+增加方法`delayTask(time, timeUnit, Runnable... )`
 来实现以定长时间间隔执行多个任务
 
 
