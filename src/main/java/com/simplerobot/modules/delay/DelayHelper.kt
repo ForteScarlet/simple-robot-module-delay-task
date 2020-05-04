@@ -14,13 +14,37 @@ object DelayHelper {
     val instance = DelayHelper
 
     /**
+     * 以一个固定的间隔时间执行一些任务
+     */
+    fun launch(time: Long, tasks: Iterator<() -> Unit>){
+        // launch
+        GlobalScope.launch {
+            tasks.forEach {
+                if (time > 0) {
+                    delay(time)
+                }
+                it()
+            }
+        }
+    }
+
+    /**
+     * 以一个固定的间隔时间执行一些任务
+     */
+    fun launch(time: Long, vararg tasks: () -> Unit){
+        launch(time, tasks.iterator())
+    }
+
+    /**
      * 延迟执行一个异步任务
      * @param task 任务函数
      * @param time 延迟时间
      */
     inline fun launch(crossinline task: () -> Unit, time: Long) =
             GlobalScope.launch {
-                delay(time)
+                if(time > 0){
+                    delay(time)
+                }
                 task()
             }
 
@@ -31,7 +55,7 @@ object DelayHelper {
      * @param time 延迟时间
      * @param timeUnit 时间类型，默认为秒
      */
-    inline fun delayTask(crossinline task: () -> Unit, time: Long, timeUnit: TimeUnit = TimeUnit.SECONDS) = launch(task, timeUnit.toMillis(time))
+    inline fun delayTask(crossinline task: () -> Unit, time: Long = 0, timeUnit: TimeUnit = TimeUnit.SECONDS) = launch(task, timeUnit.toMillis(time))
 
 
     /**
@@ -40,18 +64,56 @@ object DelayHelper {
      * @param time 延迟时间
      * @param timeUnit 时间类型，默认为秒
      */
-    inline fun delayTask(crossinline task: () -> Unit, time: Int, timeUnit: TimeUnit = TimeUnit.SECONDS) = delayTask(task, time.toLong(), timeUnit)
+    inline fun delayTask(crossinline task: () -> Unit, time: Int = 0, timeUnit: TimeUnit = TimeUnit.SECONDS) = delayTask(task, time.toLong(), timeUnit)
 
 
     /**
-     * 接收一个参数
+     * 启动一个延时任务，时间默认为0
      */
     @JvmOverloads
-    fun delayTask(task: Runnable, time: Long, timeUnit: TimeUnit = TimeUnit.SECONDS) = delayTask(task::run, time, timeUnit)
+    fun delayTask(task: Runnable, time: Long = 0L, timeUnit: TimeUnit = TimeUnit.SECONDS) = delayTask(task::run, time, timeUnit)
 
 
+    /**
+     * 启动一个延时任务。
+     */
     @JvmOverloads
     fun delayTask(task: Runnable, time: Int, timeUnit: TimeUnit = TimeUnit.SECONDS) = delayTask(task, time.toLong(), timeUnit)
+
+
+    /**
+     * 以一定的时间间隔执行一些任务
+     */
+    fun delayTask(time: Long = 0, timeUnit: TimeUnit = TimeUnit.SECONDS, tasks: Iterator<() -> Unit>) = launch(timeUnit.toMillis(time), tasks)
+
+    /**
+     * 以一定的时间间隔执行一些任务
+     */
+    fun delayTask(time: Long = 0, timeUnit: TimeUnit = TimeUnit.SECONDS, vararg tasks: () -> Unit) = launch(timeUnit.toMillis(time), *tasks)
+
+
+
+    /**
+     * 以一定的时间间隔执行一些任务
+     */
+    @JvmOverloads
+    fun delayTaskIter(time: Long = 0, timeUnit: TimeUnit = TimeUnit.SECONDS, tasks: Iterator<Runnable>) {
+        val iterator: Iterator<() -> Unit> = tasks.asSequence().map { { it.run() } }.iterator()
+        delayTask(time, timeUnit, iterator)
+    }
+
+    /**
+     * 以一定的时间间隔执行一些任务
+     */
+    @JvmOverloads
+    fun delayTask(time: Long = 0, timeUnit: TimeUnit = TimeUnit.SECONDS, vararg tasks: Runnable) {
+        val iterator = tasks.map { { it.run() } }.iterator()
+        delayTask(time, timeUnit, iterator)
+    }
+
+
+
+
 
 }
 
